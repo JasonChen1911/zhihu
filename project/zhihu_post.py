@@ -1,6 +1,5 @@
 #coding=utf-8
-import requests
-import json
+import requests, json, MySQLdb
 
 def getfollowering(urlToken, totals): 
     cookies={
@@ -37,6 +36,18 @@ def parsing_JSON(json_dict):
         #print("名字 : %s" %(item['name'].encode('utf8')))
         #print("type : %s" %(item['type']))
         #print("url_token : %s" %(item['url_token']))
+
+
+def connectdb():
+    db=MySQLdb.connect("localhost", "root", "root147258", "zhihu_info", charset='utf8')
+    cursor=db.cursor()
+    sql= "INSERT INTO person_info(url_token, gender, name, headline, location, school, major, company, job, followingCount, followerCount, voteupCount, thankedCount, answerCount, articlesCount, questionCount, followingTopicCount, followingQuestionCount) value (%s, %s, %s, %s, %s, %s, %s, %s, %s, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)" %(url_token, gender, name, headline, location, school, major, company, job, followingCount, followerCount, voteupCount, thankedCount, answerCount, articlesCount, questionCount, followingTopicCount, followingQuestionCount)
+    try:
+        cursor.execute(sql)
+        db.commit()
+    except:
+        db.rollback()
+    db.close()
 
 
 def main():
