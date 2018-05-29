@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import MySQLdb as mdb
 import time
+import methodOfDatabases as mod
 
 
 def getweb(url):
@@ -18,8 +19,23 @@ def getweb(url):
     except:
         print("Error:status is ", r.raise_for_status)
 
+def is_validity(hosts):
+    url = "http://ip.chinaz.com/getip.aspx"
+    headers = {
+        "Connection": "keep-alive",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36",
+    }
+    try:
+        html = requests.get(url, headers=headers, proxies=hosts, timeout=10)
+        if html.status_code == 200:
+            return True
+        else:
+            return False
+    except:
+        return 'error'
 
-def Soup(url, n, m):
+#快代理解析
+def kuaidlSoup(url, n, m):
     html=getweb(url+str(n))
     r_soup=BeautifulSoup(html, 'lxml')
     nav_num= r_soup.body.contents[1].find_all("div",{"id":"listnav"})[0].find_all("a")[-1].text
@@ -28,21 +44,61 @@ def Soup(url, n, m):
         ip=item.find("td", {"data-title":"IP"}).text
         port=item.find("td", {"data-title":"PORT"}).text
         type=item.find("td", {"data-title":"类型"}).text
-        print(str(m)+" : "+type+":"+ip+":"+str(port))
-        m+=1
+        host={type.lower() : type.lower()+"://"+ip+":"+str(port)}
+        value = is_validity(host)
+        print(value)
+        if value == True:
+            #sql="INSERT INTO ip_proxys(ip, status) VALUES('%s', %d);" %(type.lower()+"://"+ip+":"+str(port), 1)
+            #od.insertdb(sql)
+            print(host)
+
+        else:
+            pass
+        m += 1
         if m>50:
             return 0
     n+=1
     time.sleep(2)
     if n==int(nav_num)+1:
         return 0
-    Soup(url, n, m)
+    kuaidlSoup(url, n, m)
 
+#西刺代理解析
+def xicidlSoup(url, n, m, x):
+    html = getweb(url+str(n))
+    soup = BeautifulSoup(html, 'html.parser')
+    nav_num =soup.find_all('div', {'class':'pagination'})[0].find_all('a', )[-2].contents[0]
 
+    trs = soup.find_all('tr')
+    for i in range(1, len(trs)):
+        tds = trs[i].find_all('td')
+        ip = tds[1].contents[0]
+        port = tds[2].contents[0]
+        protocol = tds[5].contents[0].lower()
+        host = protocol + "://" + ip + ":" + str(port)
+        hosts = {protocol : host}
+        value = is_validity(hosts)
+
+        if value == True:
+            sql="INSERT INTO ip_proxys(protocol, ip, port, status) VALUES('%s', '%s', '%s', %d);" %(protocol, ip, port, 1)
+            mod.insertdb(sql)
+            m += 1
+        else:
+            pass
+        if m>100:
+            print("插入到数据库ip_proxys表中100条ip")
+            return 0
+    n+=1
+    time.sleep(2)
+    if n==int(nav_num)+1:
+        print("遍历完所有页面，共插入到数据库ip_proxys表中 %d 条ip" %(m))
+        return 0
+    xicidlSoup(url, n, m, x)
 
 
 def main():
     urls=['https://www.kuaidaili.com/free/inha/', 'http://www.xicidaili.com/nn/']
-    Soup(urls[0],1,1)
+    #kuaidlSoup(urls[0],1,1)
+    xicidlSoup(urls[1],1,1,1)
 if __name__ == '__main__':
     main()
