@@ -33,7 +33,7 @@ def verifydb(url_token, table):
     return a
 
 def main():
-    print(verifydb('guolaoxiong1', 'person_info_test'))
+    print(verifydb('guolaoxiong', 'person_info_test'))
 
 if __name__ == '__main__':
     main()

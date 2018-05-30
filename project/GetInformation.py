@@ -1,45 +1,35 @@
 #coding=utf-8
 import requests, json, MySQLdb
 from bs4 import BeautifulSoup
-import methodOfDatabases as mod
+import IPProxys
+import random
 
 def getWeb(url):
+    hosts = IPProxys.gethosts()
+    print(random.choice(hosts))
     try:
 		headers = {
             "Connection" : "keep-alive",
             "User-Agent" : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36",
         }
-		r=requests.get(url, headers=headers, timeout=30)
+		r=requests.get(url, headers=headers, proxies=random.choice(hosts), timeout=30)
 		r.raise_for_status()
 		r.encoding = r.apparent_encoding
 		return r.text
     except:
-        print("Error:status is ", r.raise_for_status)
+        pass
+        #rint("Error:status is ", r.raise_for_status)
 
-def connectdb():
-    keys=(url_token, gender, name, headline, location, school, major, company, job, followingCount, followerCount, voteupCount,favoritedCount, thankedCount, answerCount, articlesCount, questionCount, followingTopicCount, followingQuestionCount)
-    db=MySQLdb.connect("localhost", "root", "root147258", "zhihu_info", charset='utf8')
-    cursor=db.cursor()
-    sql= "INSERT INTO person_info_test(url_token, gender, name, headline, location, school, major, company, job, followingCount, followerCount, voteupCount,favoritedCount, thankedCount, answerCount, articlesCount, questionCount, followingTopicCount, followingQuestionCount) values('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d);" %(url_token, gender, name, headline, location, school, major, company, job, followingCount, followerCount, voteupCount,favoritedCount, thankedCount, answerCount, articlesCount, questionCount, followingTopicCount, followingQuestionCount)
-    
-    try:
-        a=cursor.execute(sql)
-        print(a)
-        db.commit()
-    except:
-        db.rollback()
-        print("fail")
-    
-    db.close()
-
-def Soup(html, userToken):
+def ZhiHuSoup(urlToken):
+    url = 'https://www.zhihu.com/people/'+urlToken+'/activities'
+    html = getWeb(url)
     r_soup=BeautifulSoup(html, 'html.parser')
     json_text = r_soup.body.contents[1].attrs['data-state']
     obj_json = json.loads(json_text)
-    userInfo = obj_json['entities']['users'][userToken] 
+    userInfo = obj_json['entities']['users'][urlToken]
     user_info={}
     user_info['name']=userInfo['name'] #名字
-    user_info['url_token']=userInfo['urlToken']
+    user_info['urlToken']=userInfo['urlToken']
     #性别
     try:
         if userInfo['gender'] == 1: 
@@ -85,15 +75,11 @@ def Soup(html, userToken):
     user_info['followingTopicCount']=userInfo['followingTopicCount'] #关注的话题
     user_info['followingQuestionCount']=userInfo['followingQuestionCount'] #关注的问题
 
-    #connectdb(url_token, gender, name, headline, location, school, major, company, job, followingCount, followerCount, voteupCount,favoritedCount, thankedCount, answerCount, articlesCount, questionCount, followingTopicCount, followingQuestionCount)
     return user_info
 
 def main():
-    url_token='xiao-chou-xian-sheng-21-79'
-    url = 'https://www.zhihu.com/people/'+url_token+'/activities'
-    html=getWeb(url)
-    Soup(html, url_token)
-    mod.verifydb(url_token, 'person_info_test')
+    urlToken='xiao-chou-xian-sheng-21-79'
+    print(ZhiHuSoup(urlToken))
 
 if __name__ == '__main__':
     main()

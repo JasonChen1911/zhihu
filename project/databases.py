@@ -5,10 +5,10 @@ class Database:
 
     def __init__(self, database):
         self.database = database
-        self.table = table
         self.__username = 'root'
         self.__password = 'root147258'
         self.__db = None
+        self.value = None
 
     def connectdb(self):
         print("连接数据库...")
@@ -24,12 +24,15 @@ class Database:
             cursor = self.__db.cursor()
             try:
                 a = cursor.execute(sql)
-                db.commit()
+                self.value = cursor.fetchall()
+                self.__db.commit()
                 print("数据库操作成功")
             except:
-                db.rollback()
+                self.__db.rollback()
+            cursor.close()
             return a
         else:
+            return 0
             print("数据库未连接, 请先连接数据库...")
 
     def closedb(self):

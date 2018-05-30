@@ -1,5 +1,7 @@
 #coding=utf-8
 import requests, json, MySQLdb
+import methodOfDatabases as mod
+import random
 
 def getfollowering(urlToken, totals): 
     cookies={
@@ -14,12 +16,14 @@ def getfollowering(urlToken, totals):
         'tgw_l7_route' : 'b3dca7eade474617fe4df56e6c4934a3'
     }
     for x in xrange(0,totals/20):
-        offset=20*x    
+        #offset=20*x
+        offset=0
         url='https://www.zhihu.com/api/v4/members/'+urlToken+'/followees?offset='+str(offset)+'&limit=20'
+        Agents=['Mozilla/5.0 (Macintosh; Intel …) Gecko/20100101 Firefox/60.0', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36']
         try:
             headers = {
                 "Connection" : "keep-alive",
-                "User-Agent" : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36",
+                "User-Agent" : random.choice(Agents)
             }
             r=requests.get(url, headers=headers, cookies=cookies, timeout=30)
             r.raise_for_status()
@@ -33,22 +37,13 @@ def parsing_JSON(json_dict):
     totals=json_dict['paging']['totals']
     followering_list=json_dict['data']
     for item in followering_list:
+        if mod.verifydb(item['url_token'], 'person_info_test')==0:
+
         #print("名字 : %s" %(item['name'].encode('utf8')))
         #print("type : %s" %(item['type']))
-        #print("url_token : %s" %(item['url_token']))
-
-
-def connectdb():
-    db=MySQLdb.connect("localhost", "root", "root147258", "zhihu_info", charset='utf8')
-    cursor=db.cursor()
-    sql= "INSERT INTO person_info(url_token, gender, name, headline, location, school, major, company, job, followingCount, followerCount, voteupCount, thankedCount, answerCount, articlesCount, questionCount, followingTopicCount, followingQuestionCount) value (%s, %s, %s, %s, %s, %s, %s, %s, %s, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)" %(url_token, gender, name, headline, location, school, major, company, job, followingCount, followerCount, voteupCount, thankedCount, answerCount, articlesCount, questionCount, followingTopicCount, followingQuestionCount)
-    try:
-        cursor.execute(sql)
-        db.commit()
-    except:
-        db.rollback()
-    db.close()
-
+            print("url_token : %s" %(item['url_token']))
+        else:
+            print("数据库中已存在")
 
 def main():
     obj_json=getfollowering('guolaoxiong', 309)
