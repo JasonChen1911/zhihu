@@ -17,7 +17,7 @@ def gethosts():
             ip = item[2]
             port = item[3]
             status = item[4]
-            if ipm.is_validity(protocol, ip, port): 
+            if ipm.is_validity(protocol, ip, port)==True:
                 hosts.append({protocol : protocol + "://" + ip + ":" + port})
             else:
                 sql = "UPDATE ip_proxys SET status = 0 WHERE id = %s;" %(id)
@@ -27,7 +27,7 @@ def gethosts():
 
     database.closedb()
 
-    if hosts:
+    if len(hosts) > 1:
         return hosts
     else:
         gethosts()

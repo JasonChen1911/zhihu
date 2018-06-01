@@ -23,7 +23,8 @@ def getweb(url):
 def is_validity(protocol, ip, port):
     host = protocol + "://" + ip + ":" + str(port)
     hosts = {protocol: host}
-    url = "http://ip.chinaz.com/getip.aspx"
+    #url = "http://ip.chinaz.com/getip.aspx"
+    url = 'https://www.baidu.com/'
     headers = {
         "Connection": "keep-alive",
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36",
@@ -83,7 +84,7 @@ def xicidlSoup(url, n, m, db):
         if value == True:
             sql="INSERT INTO ip_proxys(protocol, ip, port, status) VALUES('%s', '%s', '%s', %d);" %(protocol, ip, port, 1)
             #mod.insertdb(sql)
-            db.execute(sql)
+            db.executedb(sql)
             m += 1
         else:
             pass
@@ -101,7 +102,7 @@ def xicidlSoup(url, n, m, db):
 def main():
     urls=['https://www.kuaidaili.com/free/inha/', 'http://www.xicidaili.com/nn/']
     #kuaidlSoup(urls[0],1,1)
-    database=Database('zhihu_info')
+    database=databases.Database('zhihu_info')
     database.connectdb()
     xicidlSoup(urls[1],1,1,database)
     database.closedb()
