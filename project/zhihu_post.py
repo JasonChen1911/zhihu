@@ -22,12 +22,12 @@ def getfollowering(urlToken, totals):
     }
     database = databases.Database('zhihu_info')
     database.connectdb()
+    urlTokens=[]
     for x in xrange(0,totals/20):
         #offset=
         offset=20*x
         url='https://www.zhihu.com/api/v4/members/'+urlToken+'/followees?offset='+str(offset)+'&limit=20'
-        print(url)
-        Agents=['Mozilla/5.0 (Macintosh; Intel …) Gecko/20100101 Firefox/60.0', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36']
+        #Agents=['Mozilla/5.0 (Macintosh; Intel …) Gecko/20100101 Firefox/60.0', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36']
         try:
             headers = {
                 "Connection" : "keep-alive",
@@ -37,25 +37,26 @@ def getfollowering(urlToken, totals):
             r.raise_for_status()
             r.encoding = r.apparent_encoding
             obj_json = json.loads(r.text)
-            print(obj_json)
-            parsing_JSON(obj_json, database)
+            #print(obj_json)
+            urlTokens.extend(parsing_JSON(obj_json, database))
         except:
             print("111Error")
     database.closedb()
-
+    return urlTokens
 def parsing_JSON(json_dict, db):
+    urlTokens=[]
     totals=json_dict['paging']['totals']
     followering_list=json_dict['data']
     for item in followering_list:
-        sql="SELECT 1 FROM person_info_test WHERE url_token = '%s' limit 1;" %(item['url_token'])
-        print("1", db.executedb(sql))
+        sql="SELECT 1 FROM person_info_test WHERE urlToken = '%s' limit 1;" %(item['url_token'])
         if db.executedb(sql)==0:
-            pass
+            urlTokens.append(item['url_token'])
         else:
             print("数据库中已存在")
-
+    return urlTokens
 def main():
     obj_json=getfollowering('guolaoxiong', 126)
+    print(obj_json)
 
 
 if __name__ == '__main__':

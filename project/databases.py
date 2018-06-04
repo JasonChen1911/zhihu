@@ -28,6 +28,7 @@ class Database:
                 self.__db.commit()
                 print("数据库操作成功")
             except:
+                a=1
                 self.__db.rollback()
             cursor.close()
             return a
